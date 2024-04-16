@@ -28,7 +28,7 @@ or all accounts:
 python main.py -a
 ```
 
-NOTE: When using an account for the first time it will ask you for the password, which it will use to get the cookie. This program does not save the password, but saves the cookies till they expire. After logging in there might be some sort of CAPTCHA, so the program will wait till you fully log in.
+NOTE: When you start using an account with this program, it will prompt you to enter your password. This password is used temporarily to grab a cookie. Don't worry, the program won't store your password, just the cookies until they expire. Sometimes, after logging in, there might be a CAPTCHA challenge. In such cases, the program will wait until you're fully logged and you press enter in the console before proceeding.
 
 ### Prerequisites
 
