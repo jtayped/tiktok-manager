@@ -205,6 +205,12 @@ def get_yes_no_input(message: str) -> bool:
 
 
 def process_account_videos(email: str):
+    """
+    The main function that handles, making and scheduling videos for an account.
+
+    Args:
+        email (str): email of an existing account in the "accounts" folder.
+    """
     logger.info(f"Initializing {email}...")
     account = Account(email)
 
@@ -229,6 +235,12 @@ def process_account_videos(email: str):
 
 
 def get_valid_dates(account: Account) -> List[str]:
+    """
+    TikTok allows users to schedule videos up to 10 days in advance
+
+    Returns:
+        List[str]: list of available dates to post a video
+    """
     valid_dates = []
     date = None
     while True:
@@ -244,10 +256,10 @@ def calculate_clips_data(
     account: Account, valid_dates: List[str], unused_clips: List[str]
 ) -> List[dict]:
     """
-    Pairs existing and newly created clips with valid dates.
+    Pairs existing or newly created clips with valid dates.
 
     Returns:
-        List[dict]: {"path": "path/to/clip.mp4", "date": valid_date}
+        List[dict]: [{"path": "path/to/clip.mp4", "date": valid_date}, ...]
     """
     # Initialize the list to store the clip data
     clips_data = []
@@ -289,6 +301,9 @@ def calculate_clips_data(
 
 
 def schedule_videos(account: Account, clips_data: List[dict]):
+    """
+    Handles the scheduling of videos, adding captions and saving the data to the account.
+    """
     scheduler = Scheduler(account)
     logger.info("Logging in to the TikTok...")
     for clip in clips_data:
@@ -319,6 +334,9 @@ def generate_caption(id: str, part_text: str | None) -> str:
     Args:
         id (str): ID of the YouTube video
         part_text (str): indicates what part the video is (optional)
+
+    Returns:
+        str: the caption
     """
     r = requests.get(f"https://www.youtube.com/watch?v={id}")
     soup = BeautifulSoup(r.text, features="html.parser")

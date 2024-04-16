@@ -23,7 +23,17 @@ def make_videos(
     url: str, file_name: str, secondary_content: bool = True, captions: bool = True
 ) -> List[str]:
     """
-    Process a YouTube video: download, add captions, split into clips, combine with the secondary content.
+    Process a YouTube video:
+    1. Downloads YouTube video
+    2. Adds secondary content if specified
+        - Loops a video n times and cuts it to the duration of the content
+        - Stacks it on the content
+    3. Adds captions if specified
+        - Grabs the transcript from YouTube
+        - Cuts the captions in to one word parts
+        - Further processes the transcript
+    4. Cuts the video in to clips
+    5. Adds text to each clip (Part 1, Part 2, etc...)
 
     Args:
         url (str): URL of the YouTube video.
@@ -32,11 +42,11 @@ def make_videos(
         captions (bool): if the video contains captions.
 
     Returns:
-        List[str]: list of absolute file paths for all the clips
+        List[str]: list file paths to each clip
     """
     id = get_url_id(url)
 
-    # Create necessary directories
+    # Create a temporary directory to keep the iterations of the video
     create_directory(TEMP_PATH)
 
     # Download video from YouTube
@@ -64,31 +74,37 @@ def make_videos(
                 video_path, os.path.join(TEMP_PATH, "subtitled.mp4"), transcript_path
             )
 
-    # Create necessary dirs
+    # Create a folder to dump all the clips
     CLIPS_PATH = os.path.join(TEMP_PATH, id)
 
     create_directory(CLIPS_PATH)
     create_directory(OUTPUT_PATH)
 
-    # Divide the clips in to segments
+    # Divide the video in to segments
     clips = clip(video_path, CLIPS_PATH, id)
 
     # Process all clips
     processed_clips = []
     for i, clip_path in enumerate(clips):
         logger.info(f"Adding text to clip {i+1}/{len(clips)}")
+
+        # Add some text to specify which part the clip is
         target_path = os.path.join(OUTPUT_PATH, f"{file_name},{i},{id}.mp4")
         clip_path = add_text(clip_path, target_path, f"Part {i+1}")
+
         processed_clips.append(clip_path)
 
-    # Remove temp folder
+    # Remove all the temporary files
     shutil.rmtree(TEMP_PATH)
 
     return processed_clips
 
 
 def add_secondary_content(video_path: str) -> str:
-    # Process secondary content
+    """
+    Adds secondary content (ex: GTA Ramps, Minecraft Parkour, etc...) below the content.
+    """
+    # Loop a random video from the secondary content library and cut it
     logging.info("Processing secondary content...")
     secondary_video = get_random_file(SECONDARY_CONTENT_PATH)
     secondary_video = extend(
@@ -110,7 +126,7 @@ def crop(
     file_path: str, output_file: str, crop: Tuple[int, int] = CLIP_RESOLUTION
 ) -> str:
     """
-    Crop a video to a specific resolution,
+    Crop a video to a specific resolution.
 
     Args:
         file_path (str): Path to the video being cropped.
@@ -121,11 +137,7 @@ def crop(
         str: Path to the cropped video
     """
     # Get input video resolution
-    resolution_cmd = f"ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 {file_path}"
-    resolution_output = subprocess.check_output(
-        resolution_cmd, shell=True, encoding="utf-8"
-    )
-    width, height = map(int, resolution_output.split("x"))
+    width, height = get_video_dimensions(file_path)
 
     # Calculate crop dimensions based on aspect ratio
     input_aspect_ratio = width / height
@@ -210,7 +222,6 @@ def add_subtitles(video_path: str, output_path: str, transcript_path: str) -> st
     Returns:
         str: Path of the video with added subtitles.
     """
-    # Construct ffmpeg command to add subtitles
     cmd = (
         f"ffmpeg -hide_banner -loglevel error -stats -i {video_path} "
         f"-vf subtitles={transcript_path.replace('\\', '/')}:force_style="
@@ -225,19 +236,26 @@ def add_subtitles(video_path: str, output_path: str, transcript_path: str) -> st
 
 def fetch_transcript(video_id: str) -> str | None:
     """
-    Fetch and process the transcript for a YouTube video.
+    Splits the YouTube transcript in to one word segments and removes overlaps.
 
     Args:
         video_id (str): ID of the YouTube video.
 
     Returns:
-        str: Path to the transcript file.
+        str: Path to the SRT transcript file.
     """
     try:
+        # Fetches the transcript from YouTube
         transcript = YouTubeTranscriptApi.get_transcript(video_id)
-        transcript = process_transcript(transcript)
+
+        # When there are two or more people talking FFmpeg stacks the words
+        # This looks very weird, so these overlaps should be fixed
         transcript = fix_overlaps(transcript)
 
+        # Divides the captions in to one word segments
+        transcript = process_transcript(transcript)
+
+        # Create an SRT file with the transcript
         formatter = SRTFormatter()
         srt = formatter.format_transcript(transcript)
 
@@ -251,7 +269,7 @@ def fetch_transcript(video_id: str) -> str | None:
 
 def process_transcript(transcript: List[dict]) -> List[dict]:
     """
-    Process the transcript to split it into smaller segments and calculate their durations.
+    Process the transcript to split it into smaller one word segments.
 
     Args:
         transcript (List[dict]): List of transcript segments.
@@ -313,25 +331,11 @@ def fix_overlaps(transcript: List[dict]) -> List[dict]:
     return sorted_transcript
 
 
-def save_secondary_content(url: str) -> None:
-    """
-    Download and save secondary content from a URL.
-
-    Args:
-        url (str): URL of the content to download.
-    """
-    # Create necessary directories
-    create_directory(SECONDARY_CONTENT_PATH)
-
-    # Download the content
-    download_youtube_video(url, SECONDARY_CONTENT_PATH)
-
-
 def clip(
     input_video: str, output_path: str, file_name: str, duration: int = CLIP_DURATION
 ) -> List[str]:
     """
-    Split a video into clips of approximately equal duration.
+    Split a video into clips of equal duration.
 
     Args:
         input_video (str): Path to the input video.
@@ -344,7 +348,8 @@ def clip(
     """
     output_template = os.path.join(output_path, f"{file_name}_%03d.mp4")
 
-    # Construct ffmpeg command to split the video into clips
+    # There are faster ways of divding videos in to segments of specified duration
+    # but they for some reason aren't exact, and vary up to 4 seconds from the set length
     cmd = f'ffmpeg.exe -hide_banner -loglevel error -stats -i {input_video} -reset_timestamps 1 -sc_threshold 0 -g {duration} -force_key_frames "expr:gte(t, n_forced * {duration})" -segment_time {duration} -f segment {output_template}'
     subprocess.run(cmd)
 
@@ -363,24 +368,17 @@ def add_text(input_video: str, output_video: str, text: str, radius=10):
         input_video (str): Path to the input video file.
         output_video (str): Path to save the output video file.
         text (str): Text to be overlaid on the video.
-        radius (int): Radius of the rounded corners (default is 8).
-
-    Returns:
-        None
+        radius (int): Radius of the rounded corners.
     """
-
-    # Temporary file paths
     text_image_path = os.path.join(TEMP_PATH, "text.png")
 
-    # Create pic with dynamic text
+    # Create picture with dynamic text
     text_filter = (
         f"color=black@0:size=700x150,"
         f"drawtext=text='{text}':box=1:boxborderw=30:boxcolor=white:borderw=0:"
         "fontsize=75:fontcolor=black:x=(w-text_w)/2:y=(h-text_h)/2:"
         f"fontfile={FONT_FILE}"
     )
-
-    # Execute ffmpeg command to generate text image
     subprocess.run(
         [
             "ffmpeg",
@@ -414,8 +412,6 @@ def add_text(input_video: str, output_video: str, text: str, radius=10):
         f"if(lte(hypot({radius}-(W/2-abs(W/2-X)),{radius}-(H/2-abs(H/2-Y))),{radius}),255,0),255)'[t];"
         "[0][t]overlay=(W-w)/2:(H-h)*2/3"
     )
-
-    # Execute ffmpeg command with rounded corners filter
     subprocess.run(
         [
             "ffmpeg",
