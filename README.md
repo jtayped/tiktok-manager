@@ -1,16 +1,16 @@
-# Video Manager
+# TikTok Manager
 
 A Python project that manages multiple TikTok accounts automatically. It utilizes YouTube to source content from pre-selected channels for each TikTok account. Each video is processed into short-form content with FFmpeg, and all the clips are scheduled through the TikTok UI using Selenium.
 
 ## Getting Started
 
-Before you start using the project, you must create one or more TikTok accounts with email/password. Once done, you will be able to add the account to the project by following the instructions in the console:
+Before you start using the project, you must create one or more TikTok accounts with email/password. Once done, you will be able to add the account to the project by filling in the form in the console:
 
 ```
 python main.py -c
 ```
 
-If you selected the secondary content option (ex: GTA Ramps, Minecraft Parkour, etc...), you will have to find a video from YouTube and add it like following:
+If you selected the secondary content option (ex: GTA Ramps, Minecraft Parkour, etc...), you will have to find a video from YouTube and add it like the following:
 
 ```
 python main.py --add_content https://www.youtube.com/watch?v=VS3D8bgYhf4
@@ -28,7 +28,7 @@ or all accounts:
 python main.py -a
 ```
 
-NOTE: when using an account for the first time it will ask you for the password, which it will use to get the cookie. This program does not save the password, but saves the cookies till they expire. After logging in there might be some sort of CAPTCHA, so the program will wait till you fully log in.
+NOTE: When you start using an account with this program, it will prompt you to enter your password. This password is used temporarily to grab a cookie. Don't worry, the program won't store your password, just the cookies until they expire. Sometimes, after logging in, there might be a CAPTCHA challenge. In such cases, the program will wait until you're fully logged and you press enter in the console before proceeding.
 
 ### Prerequisites
 
