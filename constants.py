@@ -1,4 +1,3 @@
-
 ACCOUNTS_PATH = "accounts"
 
 # TikTok only allows to schedule videos 10 days in advance
@@ -19,9 +18,7 @@ COOKIES_PATH = "cookies"
 
 # URLs
 TIKTOK_URL = "https://www.tiktok.com"
-TIKTOK_UPLOAD_URL = (
-    "https://www.tiktok.com/creator#/upload?scene=creator_center&lang=en"
-)
+TIKTOK_UPLOAD_URL = TIKTOK_URL + "/creator#/upload?scene=creator_center&lang=en"
 TIKTOK_LOGIN_URL = TIKTOK_URL + "/login/phone-or-email/email/?lang=en"
 
 languages = [
