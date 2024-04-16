@@ -1,4 +1,4 @@
-# Video Manager
+# TikTok Manager
 
 A Python project that manages multiple TikTok accounts automatically. It utilizes YouTube to source content from pre-selected channels for each TikTok account. Each video is processed into short-form content with FFmpeg, and all the clips are scheduled through the TikTok UI using Selenium.
 
