@@ -13,7 +13,7 @@ python main.py -c
 If you selected the secondary content option (ex: GTA Ramps, Minecraft Parkour, etc...), you will have to find a video from YouTube and add it like following:
 
 ```
-python main.py --add_content https://youtube.com/video?v={id}
+python main.py --add_content https://www.youtube.com/watch?v=VS3D8bgYhf4
 ```
 
 When done adding all your TikTok accounts you can generate and post content for specific accounts like this:
