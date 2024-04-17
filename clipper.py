@@ -123,21 +123,21 @@ def add_secondary_content(video_path: str) -> str:
 
 
 def crop(
-    file_path: str, output_file: str, crop: Tuple[int, int] = CLIP_RESOLUTION
+    video_path: str, output_path: str, crop: Tuple[int, int] = CLIP_RESOLUTION
 ) -> str:
     """
     Crop a video to a specific resolution.
 
     Args:
-        file_path (str): Path to the video being cropped.
-        output_file (str): Path to the output file
+        video_path (str): Path to the video being cropped.
+        output_path (str): Path to the output file
         crop (Tuple[int, int]): Target resolution
 
     Returns:
         str: Path to the cropped video
     """
     # Get input video resolution
-    width, height = get_video_dimensions(file_path)
+    width, height = get_video_dimensions(video_path)
 
     # Calculate crop dimensions based on aspect ratio
     input_aspect_ratio = width / height
@@ -151,40 +151,43 @@ def crop(
 
     # Execute ffmpeg command
     cmd = (
-        f"ffmpeg -hide_banner -loglevel error -stats -i {file_path} "
-        f'-vf "{crop_filter}" {output_file}'
+        f"ffmpeg -hide_banner -loglevel error -stats -i {video_path} "
+        f'-vf "{crop_filter}" {output_path}'
     )
     subprocess.run(cmd, shell=True)
 
-    return output_file
+    return output_path
 
 
 def stack(
-    file_path: str, top: str, bottom: str, crop: Tuple[int, int] = CLIP_RESOLUTION
+    output_path: str,
+    top_path: str,
+    bottom_path: str,
+    crop: Tuple[int, int] = CLIP_RESOLUTION,
 ) -> str:
     """
     Combine two videos vertically and save the result to a file.
 
     Args:
-        file_path (str): Path to save the combined video.
-        top (str): Path to the top video.
-        bottom (str): Path to the bottom video.
+        output_path (str): Path to save the combined video.
+        top_path (str): Path to the top video.
+        bottom_path (str): Path to the bottom video.
         crop (Tuple[int, int]): Cropping dimensions for the combined video.
 
     Returns:
         str: Path of the combined video.
     """
     # Get resolution to match it to the top one (gives error if not)
-    bottom_width, bottom_height = get_video_dimensions(bottom)
+    bottom_width, bottom_height = get_video_dimensions(bottom_path)
 
     # Stack both videos and adjust resolution if needed
     cmd = (
-        f"ffmpeg -hide_banner -loglevel error -stats -i {top} -i {bottom} -filter_complex "
+        f"ffmpeg -hide_banner -loglevel error -stats -i {top_path} -i {bottom_path} -filter_complex "
         f'"[0:v]scale={bottom_width}:{bottom_height}[scaled_top];[scaled_top][1:v]vstack,crop={crop[0]}:{crop[1]}:(iw-{crop[0]})/2:0" '
-        f"{file_path}"
+        f"{output_path}"
     )
     subprocess.run(cmd)
-    return file_path
+    return output_path
 
 
 def extend(video_path: str, output_path: str, duration: float) -> str:
@@ -337,13 +340,13 @@ def fix_overlaps(transcript: List[dict]) -> List[dict]:
 
 
 def clip(
-    input_video: str, output_path: str, file_name: str, duration: int = CLIP_DURATION
+    video_path: str, output_path: str, file_name: str, duration: int = CLIP_DURATION
 ) -> List[str]:
     """
     Split a video into clips of equal duration.
 
     Args:
-        input_video (str): Path to the input video.
+        video_path (str): Path to the input video.
         output_path (str): Directory to save the generated clips.
         file_name (str): Base name for the generated clips.
         duration (int): Duration of each clip (in seconds).
@@ -356,10 +359,10 @@ def clip(
     # There are faster ways of divding videos in to segments of specified duration
     # but they for some reason aren't exact, and vary up to 4 seconds from the set length
     cmd = (
-        f"ffmpeg.exe -hide_banner -loglevel error -stats -i {input_video} "
-        "-reset_timestamps 1 -sc_threshold 0 -g {duration} "
-        '-force_key_frames "expr:gte(t, n_forced * {duration})" '
-        "-segment_time {duration} -f segment {output_template}"
+        f"ffmpeg.exe -hide_banner -loglevel error -stats -i {video_path} "
+        f"-reset_timestamps 1 -sc_threshold 0 -g {duration} "
+        f'-force_key_frames "expr:gte(t, n_forced * {duration})" '
+        f"-segment_time {duration} -f segment {output_template}"
     )
     subprocess.run(cmd)
 
@@ -370,13 +373,13 @@ def clip(
     return clip_paths
 
 
-def add_text(input_video: str, output_video: str, text: str, radius=10):
+def add_text(video_path: str, output_path: str, text: str, radius=10):
     """
     Add text overlay to a video with rounded corners.
 
     Parameters:
-        input_video (str): Path to the input video file.
-        output_video (str): Path to save the output video file.
+        video_path (str): Path to the input video file.
+        output_path (str): Path to save the output video file.
         text (str): Text to be overlaid on the video.
         radius (int): Radius of the rounded corners.
     """
@@ -408,12 +411,12 @@ def add_text(input_video: str, output_video: str, text: str, radius=10):
         "[0][t]overlay=(W-w)/2:(H-h)*2/3",
     )
     cmd = (
-        f"ffmpeg -hide_banner -loglevel error -stats -i {input_video} -i {text_image_path} "
-        f"-lavfi {rounded_corners_filtergraph} -c:v h264_nvenc -cq 20 -c:a copy {output_video} -y"
+        f"ffmpeg -hide_banner -loglevel error -stats -i {video_path} -i {text_image_path} "
+        f"-lavfi {rounded_corners_filtergraph} -c:v h264_nvenc -cq 20 -c:a copy {output_path} -y"
     )
     subprocess.run(cmd)
 
     # Clean up temporary files
     os.remove(text_image_path)
 
-    return output_video
+    return output_path
