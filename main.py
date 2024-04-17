@@ -351,11 +351,7 @@ def generate_caption(id: str, part_text: str | None) -> str:
     if part_text:
         main_text += f" | {part_text}"
 
-    caption = f"""
-{main_text}
-
-#reels #viral #tiktok #explore #foryou #explorepage #trending #reelsinstagram #foryoupage #love #fashion #instagram #instagood #music #likeforlikes
-"""
+    caption = f"{main_text} #reels #viral #tiktok #explore #foryou #explorepage #trending #reelsinstagram #foryoupage #love #fashion #instagram #instagood #music #likeforlikes"
     return caption
 
 
