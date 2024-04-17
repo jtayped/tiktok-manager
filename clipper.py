@@ -407,7 +407,7 @@ def add_text(video_path: str, output_path: str, text: str, radius=10):
         f"fontfile={FONT_FILE}"
     )
     cmd = (
-        f"ffmpeg hide_banner loglevel rror -stats -lavfi {text_filter} "
+        f"ffmpeg -hide_banner -loglevel error -stats -lavfi {text_filter} "
         f"-frames 1 -f image2 -c:v png -pix_fmt rgb24 {text_image_path}"
     )
     subprocess.run(cmd)
