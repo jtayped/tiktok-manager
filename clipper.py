@@ -257,7 +257,7 @@ def fetch_transcript(video_id: str) -> str | None:
         transcript = YouTubeTranscriptApi.get_transcript(video_id)
 
         # When there are two or more people talking FFmpeg stacks the words
-        # This looks very weird, so these overlaps should be fixed
+        # This looks very weird, so these overlaps shall be fixed
         transcript = fix_overlaps(transcript)
 
         # Divides the captions in to one word segments
@@ -290,14 +290,18 @@ def process_transcript(transcript: List[dict]) -> List[dict]:
     for segment in transcript:
         text = segment["text"]
 
-        if text.startswith("["):  # Skip segments that describe sounds
+        # Skip segments that describe sounds
+        # ex: [Music], [Applause], etc.
+        if text.startswith("["):
             continue
 
+        # Calculate how long each syllable in a caption is
         words = text.split()
         total_syllables = sum(syllapy.count(word) for word in words)
         syllable_duration = segment["duration"] / total_syllables
-        start_time = segment["start"]
 
+        # Calculate the start time for each word and append it to the new transcript
+        start_time = segment["start"]
         for word in words:
             word_duration = syllapy.count(word) * syllable_duration
             word_segment = {
@@ -324,7 +328,6 @@ def fix_overlaps(transcript: List[dict]) -> List[dict]:
     # Sort the transcript segments by start time
     sorted_transcript = sorted(transcript, key=lambda x: x["start"])
 
-    # Iterate through the sorted transcript to fix overlaps
     for i in range(1, len(sorted_transcript)):
         # Check if there is an overlap with the previous segment
         if (
@@ -348,13 +351,24 @@ def clip(
     Args:
         video_path (str): Path to the input video.
         output_path (str): Directory to save the generated clips.
-        file_name (str): Base name for the generated clips.
+        file_name (str): Base name for the generated clips. A number will be added to the end of each file (ex: filename_2.mp4)
         duration (int): Duration of each clip (in seconds).
 
     Returns:
         List[str]: List of paths to the generated clips.
     """
-    output_template = os.path.join(output_path, f"{file_name}_%03d.mp4")
+
+    # Add the number of the clip to the end of the file_name the user specified.
+    # If there is no file name specified, it shall only name it with the number.
+    extension = "%03d.mp4"
+    if file_name:
+        # ex: "example_2.mp4"
+        output_file_name = "_".join([file_name, extension])
+    else:
+        # ex: "2.mp4"
+        output_file_name = extension
+
+    output_template = os.path.join(output_path, output_file_name)
 
     # There are faster ways of divding videos in to segments of specified duration
     # but they for some reason aren't exact, and vary up to 4 seconds from the set length
@@ -398,7 +412,7 @@ def add_text(video_path: str, output_path: str, text: str, radius=10):
     )
     subprocess.run(cmd)
 
-    # Use Pillow to trim the text image
+    # Trim the transparent outer parts of the text image
     img = Image.open(text_image_path)
     trimmed_img = img.crop(img.getbbox())
     trimmed_img.save(text_image_path)
