@@ -21,7 +21,7 @@ TIKTOK_URL = "https://www.tiktok.com"
 TIKTOK_UPLOAD_URL = TIKTOK_URL + "/creator#/upload?scene=creator_center&lang=en"
 TIKTOK_LOGIN_URL = TIKTOK_URL + "/login/phone-or-email/email/?lang=en"
 
-languages = [
+LANGUAGES = [
     "af",
     "sq",
     "ar-SA",
@@ -143,7 +143,7 @@ languages = [
     "ji",
     "zu",
 ]
-vendors = [
+VENDORS = [
     "Google Inc.",
     "Firefox",
     "Google" "Chrome",
@@ -158,6 +158,6 @@ vendors = [
     "Chromium",
     "Epic",
 ]
-platforms = ["ChromeOS", "Windows", "MAC", "Linux"]
-webgl = ["WebKit", "Intel Inc.", "AMD"]
-renderers = ["M1", "Intel", "Nvidia", "AMD"]
+PLATFORMS = ["ChromeOS", "Windows", "MAC", "Linux"]
+WEBGL = ["WebKit", "Intel Inc.", "AMD"]
+RENDERERS = ["M1", "Intel", "Nvidia", "AMD"]

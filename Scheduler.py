@@ -31,11 +31,11 @@ class Scheduler(webdriver.Chrome):
         # Init stealth
         stealth(
             self,
-            languages=[f"{random.choice(languages)}", f"{random.choice(languages)}"],
-            vendor=f"{random.choice(vendors)}",
-            platform=f"{random.choice(platforms)}",
-            webgl_vendor=f"{random.choice(webgl)}",
-            renderer=f"{renderers}",
+            languages=[f"{random.choice(LANGUAGES)}", f"{random.choice(LANGUAGES)}"],
+            vendor=f"{random.choice(VENDORS)}",
+            platform=f"{random.choice(PLATFORMS)}",
+            webgl_vendor=f"{random.choice(WEBGL)}",
+            renderer=f"{RENDERERS}",
             fix_hairline=True,
         )
 
