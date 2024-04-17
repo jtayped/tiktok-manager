@@ -206,8 +206,11 @@ def extend(video_path: str, output_path: str, duration: float) -> str:
     n_loops = math.ceil(duration / video_duration)
 
     # Construct ffmpeg command to loop the video and cut it to the exact duration
-    ffmpeg_command = f"ffmpeg -hide_banner -loglevel error -stats -i {video_path} -vf loop={n_loops}:1 -ss 0 -to {duration} -c:a copy {output_path}"
-    subprocess.run(ffmpeg_command, shell=True)
+    cmd = (
+        f"ffmpeg -hide_banner -loglevel error -stats -i {video_path}"
+        f"-vf loop={n_loops}:1 -ss 0 -to {duration} -c:a copy {output_path}"
+    )
+    subprocess.run(cmd)
 
     return output_path
 
