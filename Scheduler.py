@@ -95,7 +95,6 @@ class Scheduler(webdriver.Chrome):
                 )
             )
         )
-        time.sleep(1) # TEST: videos aren't getting posted
         element.click()
 
         # Wait till posted
