@@ -19,7 +19,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def make_videos(
+def make_clips(
     url: str, file_name: str, secondary_content: bool = True, captions: bool = True
 ) -> List[str]:
     """

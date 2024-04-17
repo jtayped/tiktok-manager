@@ -7,8 +7,9 @@ import requests
 
 from Account import Account
 from Scheduler import Scheduler
-from clipper import make_videos, save_secondary_content
+from clipper import make_clips
 from constants import *
+from util import create_directory, download_youtube_video
 
 # Configure the logger
 logging.basicConfig(
@@ -71,6 +72,14 @@ def main():
 
         for email in emails:
             process_account_videos(email)
+
+
+def save_secondary_content(url: str):
+    # Create the secondary content directory
+    create_directory(SECONDARY_CONTENT_PATH)
+
+    # Download video
+    download_youtube_video(url, SECONDARY_CONTENT_PATH)
 
 
 def add_account_form() -> Account:
@@ -283,7 +292,7 @@ def calculate_clips_data(
         url = f"https://www.youtube.com/watch?v={id}"
 
         logger.info(f"Creating clips from {url}...")
-        clips = make_videos(
+        clips = make_clips(
             url,
             account.email,
             account.secondary_content,
