@@ -178,10 +178,12 @@ def stack(
     bottom_width, bottom_height = get_video_dimensions(bottom)
 
     # Stack both videos and adjust resolution if needed
-    subprocess.run(
-        f'ffmpeg -hide_banner -loglevel error -stats -i {top} -i {bottom} -filter_complex "[0:v]scale={bottom_width}:{bottom_height}[scaled_top];[scaled_top][1:v]vstack,crop={crop[0]}:{crop[1]}:(iw-{crop[0]})/2:0" {file_path}',
-        shell=True,
+    cmd = (
+        f"ffmpeg -hide_banner -loglevel error -stats -i {top} -i {bottom} -filter_complex "
+        f'"[0:v]scale={bottom_width}:{bottom_height}[scaled_top];[scaled_top][1:v]vstack,crop={crop[0]}:{crop[1]}:(iw-{crop[0]})/2:0" '
+        f"{file_path}"
     )
+    subprocess.run(cmd)
     return file_path
 
 
@@ -350,7 +352,12 @@ def clip(
 
     # There are faster ways of divding videos in to segments of specified duration
     # but they for some reason aren't exact, and vary up to 4 seconds from the set length
-    cmd = f'ffmpeg.exe -hide_banner -loglevel error -stats -i {input_video} -reset_timestamps 1 -sc_threshold 0 -g {duration} -force_key_frames "expr:gte(t, n_forced * {duration})" -segment_time {duration} -f segment {output_template}'
+    cmd = (
+        f"ffmpeg.exe -hide_banner -loglevel error -stats -i {input_video} "
+        "-reset_timestamps 1 -sc_threshold 0 -g {duration} "
+        '-force_key_frames "expr:gte(t, n_forced * {duration})" '
+        "-segment_time {duration} -f segment {output_template}"
+    )
     subprocess.run(cmd)
 
     # Get paths of the generated clips
@@ -379,26 +386,11 @@ def add_text(input_video: str, output_video: str, text: str, radius=10):
         "fontsize=75:fontcolor=black:x=(w-text_w)/2:y=(h-text_h)/2:"
         f"fontfile={FONT_FILE}"
     )
-    subprocess.run(
-        [
-            "ffmpeg",
-            "-hide_banner",
-            "-loglevel",
-            "error",
-            "-stats",
-            "-lavfi",
-            text_filter,
-            "-frames",
-            "1",
-            "-f",
-            "image2",
-            "-c:v",
-            "png",
-            "-pix_fmt",
-            "rgb24",
-            text_image_path,
-        ]
+    cmd = (
+        f"ffmpeg hide_banner loglevel rror -stats -lavfi {text_filter} "
+        f"-frames 1 -f image2 -c:v png -pix_fmt rgb24 {text_image_path}"
     )
+    subprocess.run(cmd)
 
     # Use Pillow to trim the text image
     img = Image.open(text_image_path)
@@ -410,31 +402,13 @@ def add_text(input_video: str, output_video: str, text: str, radius=10):
     rounded_corners_filtergraph = (
         f"[1:v]geq=lum='p(X,Y)':a='if(gt(abs(W/2-X),W/2-{radius})*gt(abs(H/2-Y),H/2-{radius}),"
         f"if(lte(hypot({radius}-(W/2-abs(W/2-X)),{radius}-(H/2-abs(H/2-Y))),{radius}),255,0),255)'[t];"
-        "[0][t]overlay=(W-w)/2:(H-h)*2/3"
+        "[0][t]overlay=(W-w)/2:(H-h)*2/3",
     )
-    subprocess.run(
-        [
-            "ffmpeg",
-            "-hide_banner",
-            "-loglevel",
-            "error",
-            "-stats",
-            "-i",
-            input_video,
-            "-i",
-            text_image_path,
-            "-lavfi",
-            rounded_corners_filtergraph,
-            "-c:v",
-            "h264_nvenc",
-            "-cq",
-            "20",
-            "-c:a",
-            "copy",
-            output_video,
-            "-y",
-        ]
+    cmd = (
+        f"ffmpeg -hide_banner -loglevel error -stats -i {input_video} -i {text_image_path} "
+        f"-lavfi {rounded_corners_filtergraph} -c:v h264_nvenc -cq 20 -c:a copy {output_video} -y"
     )
+    subprocess.run(cmd)
 
     # Clean up temporary files
     os.remove(text_image_path)
