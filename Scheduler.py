@@ -119,6 +119,7 @@ class Scheduler(webdriver.Chrome):
         # The first time a user schedules a video it will ask to allow the option
         # It should attempt to find the button, which comes up quite fast after toggling the schedule switch
         try:
+            # The button comes up quite fast, so the max wait time should be set to a low value
             self.implicitly_wait(3)
             allow_button = self.find_element(
                 By.CSS_SELECTOR,
@@ -126,8 +127,9 @@ class Scheduler(webdriver.Chrome):
             )
             allow_button.click()
         except:
-            print("Couldn't find accept button! Continuing...")
+            pass
         finally:
+            # Reset the implicit wait duration
             self.implicitly_wait(10)
 
         # Input date and time
@@ -143,7 +145,6 @@ class Scheduler(webdriver.Chrome):
         calendar_btn.click()
 
         month_click_count = 0
-
         while True:
             # Find the selectable days of the month
             valid_days = self.find_elements(
@@ -226,8 +227,6 @@ class Scheduler(webdriver.Chrome):
         Returns:
             cookies: The session cookie to log in in the future.
         """
-        print(email, password)
-
         # Go to the login page
         self.get(TIKTOK_LOGIN_URL)
 
