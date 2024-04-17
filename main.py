@@ -55,11 +55,11 @@ def main():
     if args.create_account:
         add_account_form()
 
-    if args.edit_account:
+    elif args.edit_account:
         account = args.edit_account[0]
         edit_account_form(account)
 
-    if args.add_content:
+    elif args.add_content:
         for url in args.add_content:
             logger.info(f"Saving {url}...")
             save_secondary_content(url)
