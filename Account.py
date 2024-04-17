@@ -8,17 +8,21 @@ import random
 from constants import *
 from util import create_directory
 
+
 class Account:
     def __init__(self, email: str) -> None:
         # Get the path to the account path given the usenrame
         account_path = os.path.join(ACCOUNTS_PATH, email + ".pkl")
 
-        # Get the user data
+        # Get the user data from the file
         self.load_data(account_path)
 
     def get_next_date(self, start_date: datetime | None = None) -> datetime:
         """
         Returns the next available date to post a video given the account's schedule.
+
+        Args:
+            start_date (datetime): it is *optional* to specify a start date to see what dates are available from then on.
         """
 
         if start_date:
@@ -54,8 +58,10 @@ class Account:
 
     def get_processed_videos(self) -> List[str]:
         """
+        Find the videos in the output folder that belong to the account.
+
         Returns:
-            List[str]: list of videos that have been processed but not posted
+            List[str]: list of absolute file paths to video files.
         """
         # Create the output dir if necessary
         create_directory(OUTPUT_PATH)
@@ -65,7 +71,7 @@ class Account:
 
         account_videos = []
         for video in videos:
-            # Check if the file is owned by the user (ex: usenrame123,videoID,n)
+            # Check if the file is owned by the user (ex: "email@example.com,videoID,n.mp4") TODO: check this example
             if video.split(",")[0] == self.email:
                 full_path = os.path.join(os.getcwd(), OUTPUT_PATH, video)
                 account_videos.append(full_path)
@@ -82,16 +88,14 @@ class Account:
         Returns:
             List[dict]: list of YouTube videos
         """
-        # Get unique videos from the posted videos list
-        used_videos = self.get_used_videos()
-
         # Get videos from the account channels
         channel_videos = []
         for channel in self.channels:
             videos = self.get_channel_videos(channel)
             channel_videos.extend(videos)
 
-        # Filter out the used videos
+        # Filter out the already processed videos
+        used_videos = self.get_used_videos()
         for used_video in used_videos:
             if used_videos in channel_videos:
                 channel_videos.remove(used_video)
@@ -101,13 +105,15 @@ class Account:
     def get_used_videos(self) -> List[str]:
         """
         Returns:
-            List[str]: list of unique video IDs (used videos)
+            List[str]: list of unique video IDs (unused videos)
         """
+        # Find the unique videos in the list of posted videos
         unique_ids = []
         for video in self.videos:
             if video["id"] not in unique_ids:
                 unique_ids.append(video["id"])
 
+        # Add used videos to the list
         clips = os.listdir(OUTPUT_PATH)
         for clip in clips:
             id = clip.split(",")[2]
@@ -120,23 +126,31 @@ class Account:
         """
         Args:
             channel_username (str): username of a channel (ex: CodeBullet)
-            limit (int): number of videos to retrieve to scrape from YouTube
 
         Returns:
             List[str]: list of videos from a channel
         """
         videos = scrapetube.get_channel(channel_username=channel_username, limit=60)
 
+        # Filter out videos that are longer than the video_length specified for the account
         output_videos = []
         for video in videos:
             duration = self.duration_to_seconds(video["lengthText"]["simpleText"])
             if duration <= self.video_length:
                 output_videos.append(video["videoId"])
 
+        # Shuffle to not get the very most recent videos
+        # TODO: check if this is even useful
         random.shuffle(output_videos)
         return output_videos
 
-    def duration_to_seconds(self, duration):
+    def duration_to_seconds(self, duration: str):
+        """
+        Transforms a HH:mm:ss or mm:ss to seconds.
+
+        Args:
+            duration (str): (example: "28:39", "1:43:32")
+        """
         parts = duration.split(":")
         if len(parts) == 3:  # Format is HH:mm:ss
             hours = int(parts[0])
