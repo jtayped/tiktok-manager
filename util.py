@@ -129,7 +129,7 @@ def get_video_dimensions(video_path: str) -> Tuple[int, int]:
         stderr=subprocess.PIPE,
         text=True,
     )
-
+    print(result)
     # Parse dimensions from the result
     dimensions = result.stdout.strip().split("x")
     width, height = int(dimensions[0]), int(dimensions[1])

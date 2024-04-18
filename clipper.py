@@ -95,7 +95,7 @@ def make_clips(
         processed_clips.append(clip_path)
 
     # Remove all the temporary files
-    shutil.rmtree(TEMP_PATH)
+    #shutil.rmtree(TEMP_PATH)
 
     return processed_clips
 
@@ -107,6 +107,7 @@ def add_secondary_content(video_path: str) -> str:
     # Loop a random video from the secondary content library and cut it
     logging.info("Processing secondary content...")
     secondary_video = get_random_file(SECONDARY_CONTENT_PATH)
+
     secondary_video = extend(
         secondary_video,
         os.path.join(TEMP_PATH, "content.mp4"),
@@ -186,7 +187,7 @@ def stack(
         f'"[0:v]scale={bottom_width}:{bottom_height}[scaled_top];[scaled_top][1:v]vstack,crop={crop[0]}:{crop[1]}:(iw-{crop[0]})/2:0" '
         f"{output_path}"
     )
-    subprocess.run(cmd)
+    subprocess.run(cmd, shell=True)
     return output_path
 
 
@@ -210,7 +211,7 @@ def extend(video_path: str, output_path: str, duration: float) -> str:
 
     # Construct ffmpeg command to loop the video and cut it to the exact duration
     cmd = (
-        f"ffmpeg -hide_banner -loglevel error -stats -i {video_path}"
+        f"ffmpeg -hide_banner -loglevel error -stats -i {video_path} "
         f"-vf loop={n_loops}:1 -ss 0 -to {duration} -c:a copy {output_path}"
     )
     subprocess.run(cmd)
@@ -267,7 +268,7 @@ def fetch_transcript(video_id: str) -> str | None:
         formatter = SRTFormatter()
         srt = formatter.format_transcript(transcript)
 
-        filepath = "transcript.srt"
+        filepath = os.path.join(TEMP_PATH, "transcript.srt")
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(srt)
         return filepath
@@ -404,13 +405,13 @@ def add_text(video_path: str, output_path: str, text: str, radius=10):
         f"color=black@0:size=700x150,"
         f"drawtext=text='{text}':box=1:boxborderw=30:boxcolor=white:borderw=0:"
         "fontsize=75:fontcolor=black:x=(w-text_w)/2:y=(h-text_h)/2:"
-        f"fontfile={FONT_FILE}"
+        f"fontfile='{FONT_FILE}'"
     )
     cmd = (
-        f"ffmpeg -hide_banner -loglevel error -stats -lavfi {text_filter} "
-        f"-frames 1 -f image2 -c:v png -pix_fmt rgb24 {text_image_path}"
+        f"ffmpeg -hide_banner -loglevel error -stats -lavfi \"{text_filter}\" "
+        f"-frames 1 -f image2 -c:v png -pix_fmt rgb24 \"{text_image_path}\""
     )
-    subprocess.run(cmd)
+    subprocess.run(cmd, shell=True)
 
     # Trim the transparent outer parts of the text image
     img = Image.open(text_image_path)
