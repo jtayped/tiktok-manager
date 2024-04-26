@@ -61,6 +61,10 @@ class Account:
         Returns:
             dict: info about the latest scheduled video
         """
+        # Return none if list is empty
+        if not self.videos:
+            return None
+        
         latest_item = max(self.videos, key=lambda x: x["date"])
         return latest_item
 
@@ -175,7 +179,7 @@ class Account:
         return total_seconds
 
     def add_video_to_history(
-        self, id: str, date_posted: datetime | None, save: bool = True
+        self, id: str, date_posted: datetime = None, save: bool = True
     ):
         # If no date is provided the date shall be now
         if not date_posted:

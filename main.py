@@ -273,13 +273,14 @@ def calculate_clips_data(
     # Initialize the list to store the clip data
     clips_data = []
 
-    last_scheduled_id = account.last_scheduled_video()["id"]
-
-    ordered_clips = []
+    # Find last scheduled clip if any
+    last_scheduled_clip = account.last_scheduled_video()
+    last_scheduled_id = last_scheduled_clip["id"] if last_scheduled_clip else None
 
     # Prioritize clips of last scheduled post
-    for clip in unused_clips:
-        clip_id = clip.split(",")[2]
+    ordered_clips = []
+    for clip in reversed(unused_clips):
+        clip_id = clip.removesuffix(".mp4").split(",")[2]
         if last_scheduled_id and clip_id == last_scheduled_id:
             # Count the number of clips with the same ID already in ordered_clips
             index = sum(
@@ -300,6 +301,7 @@ def calculate_clips_data(
         # of valid_dates it checks it's state before removing the value
         # therefor skipping the return
         if not valid_dates:
+            print(clips_data[:3])
             return clips_data
 
     while True:
