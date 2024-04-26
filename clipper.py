@@ -388,7 +388,16 @@ def clip(
     return clip_paths
 
 
-def add_text(video_path: str, output_path: str, text: str, radius=10):
+def add_text(
+    video_path: str,
+    output_path: str,
+    text: str,
+    fontcolor="black",
+    boxcolor="white",
+    fontsize=50,
+    padding=20,
+    radius=10,
+):
     """
     Add text overlay to a video with rounded corners.
 
@@ -396,6 +405,10 @@ def add_text(video_path: str, output_path: str, text: str, radius=10):
         video_path (str): Path to the input video file.
         output_path (str): Path to save the output video file.
         text (str): Text to be overlaid on the video.
+        fontcolor (str): color of the text.
+        boxcolor (str): color of the background.
+        fontsize (int): size of the font.
+        padding (int): space between the content and the border.
         radius (int): Radius of the rounded corners.
     """
     text_image_path = os.path.join(TEMP_PATH, "text.png")
@@ -403,8 +416,8 @@ def add_text(video_path: str, output_path: str, text: str, radius=10):
     # Create picture with dynamic text
     text_filter = (
         f"color=black@0:size=700x150,"
-        f"drawtext=text='{text}':box=1:boxborderw=30:boxcolor=white:borderw=0:"
-        "fontsize=75:fontcolor=black:x=(w-text_w)/2:y=(h-text_h)/2:"
+        f"drawtext=text='{text}':box=1:boxborderw={padding}:boxcolor={boxcolor}:borderw=0:"
+        f"fontsize={fontsize}:fontcolor={fontcolor}:x=(w-text_w)/2:y=(h-text_h)/2:"
         f"fontfile='{FONT_FILE}'"
     )
     cmd = (
