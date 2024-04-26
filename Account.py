@@ -152,8 +152,6 @@ class Account:
                 output_videos.append(video["videoId"])
 
         # Shuffle to not get the very most recent videos
-        # TODO: check if this is even useful
-        random.shuffle(output_videos)
         return output_videos
 
     def duration_to_seconds(self, duration: str):
