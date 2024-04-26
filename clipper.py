@@ -408,8 +408,8 @@ def add_text(video_path: str, output_path: str, text: str, radius=10):
         f"fontfile='{FONT_FILE}'"
     )
     cmd = (
-        f"ffmpeg -hide_banner -loglevel error -stats -lavfi \"{text_filter}\" "
-        f"-frames 1 -f image2 -c:v png -pix_fmt rgb24 \"{text_image_path}\""
+        f'ffmpeg -hide_banner -loglevel error -stats -lavfi "{text_filter}" '
+        f'-frames 1 -f image2 -c:v png -pix_fmt rgb24 "{text_image_path}"'
     )
     subprocess.run(cmd, shell=True)
 
@@ -423,7 +423,7 @@ def add_text(video_path: str, output_path: str, text: str, radius=10):
     rounded_corners_filtergraph = (
         f"[1:v]geq=lum='p(X,Y)':a='if(gt(abs(W/2-X),W/2-{radius})*gt(abs(H/2-Y),H/2-{radius}),"
         f"if(lte(hypot({radius}-(W/2-abs(W/2-X)),{radius}-(H/2-abs(H/2-Y))),{radius}),255,0),255)'[t];"
-        "[0][t]overlay=(W-w)/2:(H-h)*2/3",
+        "[0][t]overlay=(W-w)/2:(H-h)*2/3"
     )
     cmd = (
         f"ffmpeg -hide_banner -loglevel error -stats -i {video_path} -i {text_image_path} "
