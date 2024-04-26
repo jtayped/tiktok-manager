@@ -273,8 +273,24 @@ def calculate_clips_data(
     # Initialize the list to store the clip data
     clips_data = []
 
-    # Pair unused clips with dates if available
+    last_scheduled_id = account.last_scheduled_video()["id"]
+
+    ordered_clips = []
+
+    # Prioritize clips of last scheduled post
     for clip in unused_clips:
+        clip_id = clip.split(",")[2]
+        if last_scheduled_id and clip_id == last_scheduled_id:
+            # Count the number of clips with the same ID already in ordered_clips
+            index = sum(
+                1 for c in ordered_clips if c.split(",")[2] == last_scheduled_id
+            )
+            ordered_clips.insert(index, clip)
+        else:
+            ordered_clips.append(clip)
+
+    # Pair unused clips with dates if available
+    for clip in ordered_clips:
         if valid_dates:
             clip_data = {"path": clip, "date": valid_dates.pop(0)}
             clips_data.append(clip_data)

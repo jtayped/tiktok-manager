@@ -56,6 +56,14 @@ class Account:
             # If no available time slots on the current date, try the next day
             next_date += timedelta(days=1)
 
+    def last_scheduled_video(self) -> dict | None:
+        """
+        Returns:
+            dict: info about the latest scheduled video
+        """
+        latest_item = max(self.videos, key=lambda x: x["date"])
+        return latest_item
+
     def get_processed_videos(self) -> List[str]:
         """
         Find the videos in the output folder that belong to the account.
