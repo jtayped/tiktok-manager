@@ -1,3 +1,6 @@
+
+[Clip example](https://github.com/jtayped/tiktok-manager/assets/87146558/0e8c60d0-e258-4750-895f-0976a4f6ca3e)
+
 # TikTok Manager
 
 A Python project that manages multiple TikTok accounts automatically. It utilizes YouTube to source content from pre-selected channels for each TikTok account. Each video is processed into short-form content with FFmpeg, and all the clips are scheduled through the TikTok UI using Selenium.
