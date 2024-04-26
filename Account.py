@@ -64,7 +64,7 @@ class Account:
         # Return none if list is empty
         if not self.videos:
             return None
-        
+
         latest_item = max(self.videos, key=lambda x: x["date"])
         return latest_item
 
@@ -83,7 +83,7 @@ class Account:
 
         account_videos = []
         for video in videos:
-            # Check if the file is owned by the user (ex: "email@example.com,videoID,n.mp4") TODO: check this example
+            # Check if the file is owned by the user (ex: "email@example.com,0,XQIu5tZ0vbQ.mp4")
             if video.split(",")[0] == self.email:
                 full_path = os.path.join(os.getcwd(), OUTPUT_PATH, video)
                 account_videos.append(full_path)
