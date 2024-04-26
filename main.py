@@ -1,5 +1,6 @@
 from typing import List
 from bs4 import BeautifulSoup
+from collections import defaultdict
 import argparse
 import logging
 import os
@@ -277,34 +278,30 @@ def calculate_clips_data(
     last_scheduled_clip = account.last_scheduled_video()
     last_scheduled_id = last_scheduled_clip["id"] if last_scheduled_clip else None
 
-    # Prioritize clips of last scheduled post
+    # Group unused clips by their ID
+    id_clips_map = defaultdict(list)
+    for clip in unused_clips:
+        _, _, clip_id = os.path.basename(clip).removesuffix(".mp4").split(",")
+        id_clips_map[clip_id].append(clip)
+
+    # Order clips by ID and group IDs
     ordered_clips = []
-    for clip in reversed(unused_clips):
-        clip_id = clip.removesuffix(".mp4").split(",")[2]
-        if last_scheduled_id and clip_id == last_scheduled_id:
-            # Count the number of clips with the same ID already in ordered_clips
-            index = sum(
-                1 for c in ordered_clips if c.split(",")[2] == last_scheduled_id
-            )
-            ordered_clips.insert(index, clip)
-        else:
-            ordered_clips.append(clip)
+    if unused_clips:
+        ordered_clips.extend(id_clips_map.pop(last_scheduled_id, []))
+
+    for clips in id_clips_map.values():
+        ordered_clips.extend(clips)
 
     # Pair unused clips with dates if available
     for clip in ordered_clips:
         if valid_dates:
             clip_data = {"path": clip, "date": valid_dates.pop(0)}
             clips_data.append(clip_data)
+        else:
+            break
 
-        # When there are no valid dates it should return the data
-        # This can't be done with an "else" because on the last value
-        # of valid_dates it checks it's state before removing the value
-        # therefor skipping the return
-        if not valid_dates:
-            print(clips_data[:3])
-            return clips_data
-
-    while True:
+    # Generate new clips if needed
+    while valid_dates:
         # Create clips from a video
         id = account.get_videos(1)[0]
         url = f"https://www.youtube.com/watch?v={id}"
@@ -322,9 +319,10 @@ def calculate_clips_data(
             if valid_dates:
                 clip_data = {"path": clip, "date": valid_dates.pop(0)}
                 clips_data.append(clip_data)
+            else:
+                break
 
-            if not valid_dates:
-                return clips_data
+    return clips_data
 
 
 def schedule_videos(account: Account, clips_data: List[dict]):
