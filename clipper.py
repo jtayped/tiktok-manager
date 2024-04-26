@@ -95,7 +95,7 @@ def make_clips(
         processed_clips.append(clip_path)
 
     # Remove all the temporary files
-    #shutil.rmtree(TEMP_PATH)
+    shutil.rmtree(TEMP_PATH)
 
     return processed_clips
 
